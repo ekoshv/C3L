@@ -14,7 +14,6 @@ so even small local models (LM Studio) finish without spiraling.
 - run-watchdog.ps1 — Windows launcher
 - run-watchdog.sh — Linux/macOS launcher
 - scripts/health-check.mjs — quick = npm test; full = npm test + build if present
-- scripts/run-tests.mjs — robust test gate (fails even when node --test under-reports)
 - scripts/parse-project-config.mjs — reads project_description.md frontmatter
 - scripts/milestones.json — EDIT THIS: machine-checkable milestone file lists
 - scripts/orchestrator.mjs — entry point for the deterministic engine

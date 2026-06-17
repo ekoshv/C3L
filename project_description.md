@@ -1,5 +1,5 @@
 ---
-name: My Autonomous Project
+name: MiniLedger
 version: 0.1.0
 health_quick: npm run health
 health_full: npm run health:full
@@ -17,41 +17,48 @@ stall_limit: 2
 impl_attempt_limit: 3
 ---
 
-# My Autonomous Project
+# MiniLedger
 
 ## Vision
 
-Describe what you are building, in plain language. Keep it concrete. The orchestrator
-implements one milestone at a time, so order them from foundation to features.
+A small, dependency-free in-memory accounting library written as pure-logic Node
+ESM modules. It tracks money in integer cents (no floats), records transactions
+against accounts, and produces simple reports. Everything is unit-tested with the
+Node built-in test runner.
 
 ## Quality rules
 
 - 100-line limit per code file (see CLAUDE.md).
-- Pure-logic modules with Node tests are easiest for a small local model to finish
-  and for the test runner to verify deterministically (avoid DOM/browser in tests).
-- Put assertions inside it()/test() blocks, never directly in a describe() body.
+- Pure logic only — no DOM, no network, no external dependencies.
+- Money is always integer cents. Never use floating point for money math.
 - Fix only the failing layer on errors; read watchdog.md + failed_attempts.log first.
 
 ## Milestones (implement in order)
 
-Each milestone below MUST also be listed in scripts/milestones.json with its exact
-required files — that file is the machine-checkable source of truth for "done".
+Each milestone is also listed in scripts/milestones.json (the machine-checkable
+source of truth for "done").
 
-### M1 — <first milestone title>
-- src/<module>.js — <what it exports / does>.
-- tests/<module>.test.js — <what it asserts>.
+### M1 — Money utilities
+- src/money.js — exports toCents(dollars), formatCents(cents) -> "$X.XX",
+  and addCents(...amounts). Reject non-numbers and non-integer cents.
+- tests/money.test.js — covers conversion, formatting, addition, and rejection.
 
-### M2 — <second milestone title>
-- src/<module2>.js — ...
-- tests/<module2>.test.js — ...
+### M2 — Account ledger
+- src/ledger.js — exports createLedger() returning { post(entry), balanceOf(account) }.
+  An entry is { account, amount } in integer cents (amount may be negative).
+  balanceOf sums all posted amounts for that account (0 if none). post rejects
+  invalid entries (missing account or non-integer amount).
+- tests/ledger.test.js — covers posting, summing, unknown-account zero, and rejection.
+
+### M3 — Category report
+- src/report.js — exports totalsByCategory(entries) where each entry is
+  { category, amount } in cents; returns an object mapping category -> summed cents.
+  Ignores entries with empty category by throwing an error.
+- tests/report.test.js — covers grouping, summation, and the empty-category error.
 
 ## How autonomy works
 
 The launcher runs node scripts/orchestrator.mjs, which loops deterministically:
-
-1. Run health_quick. If it fails, make one short model fix call (fix_turns), re-check.
-2. If green, find the next incomplete milestone from milestones.json (by file
-   existence) and make one short model implement call (impl_turns).
-3. When all milestones exist and health_full is green, STOP with SUCCESS.
-4. Deterministic loop-breakers (same error / no edits / no progress / max iterations)
-   force a STOP with a written failed_attempts.log for human review.
+run health; if green implement the next incomplete milestone; if failing apply one
+short scoped fix; stop when all milestones exist and health:full is green, or when
+a deterministic loop-breaker trips.
