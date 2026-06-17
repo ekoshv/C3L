@@ -1,0 +1,13 @@
+{
+  "milestones": [
+    {
+      "id": "M1",
+      "title": "Example pure-logic module",
+      "files": [
+        "src/example.js",
+        "tests/example.test.js"
+      ],
+      "spec": "Replace this milestone. List the exact files the orchestrator must see to consider it done, and describe precisely what the module exports and how the test verifies it. Keep modules pure-logic (no DOM). Put assertions inside it()/test() blocks only."
+    }
+  ]
+}

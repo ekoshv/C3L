@@ -1,0 +1,4 @@
+node_modules/
+dist/
+logs/
+failed_attempts.log

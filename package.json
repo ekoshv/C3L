@@ -1,0 +1,11 @@
+{
+  "name": "claude-local-project",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "test": "node scripts/run-tests.mjs",
+    "health": "node scripts/health-check.mjs quick",
+    "health:full": "node scripts/health-check.mjs full"
+  }
+}
