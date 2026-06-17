@@ -1,0 +1,25 @@
+{
+  "milestones": [
+    {
+      "id": "M1",
+      "title": "Tokenizer",
+      "mode": "pure-logic",
+      "files": ["src/tokenize.js", "tests/tokenize.test.js"],
+      "spec": "tokenize(text) -> lowercase words (letters/digits only, split on non-alnum). normalize(text) trims and collapses whitespace. ESM; assertions in test() only."
+    },
+    {
+      "id": "M2",
+      "title": "Word frequencies",
+      "mode": "pure-logic",
+      "files": ["src/frequency.js", "tests/frequency.test.js"],
+      "spec": "wordCounts(tokens) -> Map word->count. topN(counts, n) -> [{word,count}] sorted desc. Empty input returns empty structures."
+    },
+    {
+      "id": "M3",
+      "title": "Document summary",
+      "mode": "pure-logic",
+      "files": ["src/summary.js", "tests/summary.test.js"],
+      "spec": "summarize(text) -> { words, lines, paragraphs, topWords }. Uses tokenize + wordCounts. paragraphs = blocks separated by blank lines."
+    }
+  ]
+}

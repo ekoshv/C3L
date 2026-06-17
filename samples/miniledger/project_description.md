@@ -1,5 +1,5 @@
 ---
-name: My Autonomous Project
+name: MiniLedger
 version: 0.1.0
 health_quick: npm run health
 health_full: npm run health:full
@@ -20,7 +20,17 @@ recovery_turns: 20
 analyze_turns: 8
 ---
 
-# My Autonomous Project
+# MiniLedger
 
-Describe your project here. Copy a spec from `samples/` or edit this template.
-Define milestones in `scripts/milestones.json` (machine-checkable source of truth).
+## Vision
+
+Small in-memory accounting library. Money as integer cents (no floats). Post
+transactions to accounts; summarize by category. Pure Node ESM + node:test.
+
+## Milestones
+
+### M1 — Money utilities
+### M2 — Account ledger
+### M3 — Category report
+
+See `milestones.json` for required files per milestone.

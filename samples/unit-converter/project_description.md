@@ -1,5 +1,5 @@
 ---
-name: My Autonomous Project
+name: UnitConverter
 version: 0.1.0
 health_quick: npm run health
 health_full: npm run health:full
@@ -20,7 +20,17 @@ recovery_turns: 20
 analyze_turns: 8
 ---
 
-# My Autonomous Project
+# UnitConverter
 
-Describe your project here. Copy a spec from `samples/` or edit this template.
-Define milestones in `scripts/milestones.json` (machine-checkable source of truth).
+## Vision
+
+Convert temperature (C/F/K) and length (m/ft/km/mi) with validation and batch
+convert helpers. Pure functions, Node ESM, node:test.
+
+## Milestones
+
+### M1 — Temperature
+### M2 — Length
+### M3 — Batch convert
+
+See `milestones.json` for required files.

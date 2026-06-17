@@ -1,0 +1,25 @@
+{
+  "milestones": [
+    {
+      "id": "M1",
+      "title": "Money utilities",
+      "mode": "pure-logic",
+      "files": ["src/money.js", "tests/money.test.js"],
+      "spec": "toCents(dollars), formatCents(cents) -> \"$X.XX\", addCents(...amounts). Reject non-numbers and non-integer cents. ESM; test() blocks only."
+    },
+    {
+      "id": "M2",
+      "title": "Account ledger",
+      "mode": "pure-logic",
+      "files": ["src/ledger.js", "tests/ledger.test.js"],
+      "spec": "createLedger() -> { post({account, amount}), balanceOf(account) }. Amounts in integer cents. balanceOf sums postings; 0 if none. post throws on invalid entry."
+    },
+    {
+      "id": "M3",
+      "title": "Category report",
+      "mode": "pure-logic",
+      "files": ["src/report.js", "tests/report.test.js"],
+      "spec": "totalsByCategory([{category, amount}]) -> { category: sumCents }. Throw on empty category."
+    }
+  ]
+}

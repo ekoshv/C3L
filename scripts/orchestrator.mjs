@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
 import { mkdirSync } from 'node:fs';
 import { loadConfig } from './orchestrator/config.mjs';
-import { run } from './orchestrator/loop.mjs';
+import { runGreatLoop } from './orchestrator/great-loop.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const cfg = loadConfig(root);
@@ -18,12 +18,17 @@ console.log(`[orch] health:  ${cfg.health_command}`);
 console.log(`[orch] milestones: ${cfg.milestones.map((m) => m.id).join(', ')}`);
 console.log(`[orch] log: ${logFile}`);
 
-const result = run(cfg, logFile);
+const result = runGreatLoop(cfg, logFile);
 
 if (result.status === 'success') {
-  console.log('[orch] ===== SUCCESS: project complete and verified green =====');
+  const extra = result.recoveryPasses
+    ? ` (${result.recoveryPasses} recovery pass(es) used)`
+    : '';
+  console.log(`[orch] ===== SUCCESS: project complete and verified green${extra} =====`);
   process.exit(0);
 } else {
-  console.log(`[orch] ===== BLOCKED: ${result.reason} — human review needed =====`);
+  console.log(
+    `[orch] ===== BLOCKED: ${result.reason} after ${result.recoveryPasses} recovery pass(es) — human review needed =====`
+  );
   process.exit(2);
 }

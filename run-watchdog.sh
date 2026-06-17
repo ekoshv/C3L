@@ -45,11 +45,11 @@ if [[ "$TEST" == true ]]; then
   exit 0
 fi
 
-log "Starting DETERMINISTIC orchestrator (autonomous) ..."
-log "The loop runs in Node; the model is called only for small scoped tasks."
+log "Starting DETERMINISTIC orchestrator + great-loop recovery (autonomous) ..."
+log "Inner loop in Node; on BLOCKED the model gets a recovery pass (up to 5x)."
 if node scripts/orchestrator.mjs; then
   log "DONE: project complete and verified green."
 else
-  log "STOPPED: blocked for human review (see failed_attempts.log)."
+  log "STOPPED: blocked after great-loop recovery exhausted (see failed_attempts.log, recovery_attempts.log)."
   exit 2
 fi

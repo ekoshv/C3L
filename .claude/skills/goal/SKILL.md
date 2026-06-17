@@ -19,7 +19,9 @@ codebase within a strict turn budget without repeating past mistakes.
 
 1. **Read state first:** read `watchdog.md` and `failed_attempts.log`. Mandatory.
 2. **Identify failing layer:** from output, find the first failed step
-   (test / build / lint / typecheck). Fix that layer only.
+   (test / build / lint / typecheck). Fix that layer only. Common local-model
+   mistakes: fake `assert.approximateEqual` (use `tests/test-utils.js`),
+   assertions outside `it()`, duplicate exports, bad ESM import paths.
 3. **Scope edits:** change only files in the stack trace or failing test module.
    Do not refactor unrelated code in the same turn.
 4. **Pivot (Rule 3):** do NOT reuse approaches listed in `failed_attempts.log`.

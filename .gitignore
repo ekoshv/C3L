@@ -2,3 +2,6 @@ node_modules/
 dist/
 logs/
 failed_attempts.log
+recovery_attempts.log
+failure_journal.log
+learned_skills.log

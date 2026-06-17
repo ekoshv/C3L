@@ -1,0 +1,52 @@
+{
+  "milestones": [
+    {
+      "id": "M1",
+      "title": "Core physics engine",
+      "mode": "pure-logic",
+      "files": [
+        "src/physics/constants.js",
+        "src/physics/tire.js",
+        "src/physics/vehicle.js",
+        "tests/physics.test.js"
+      ],
+      "spec": "constants.js: VEHICLE_MASS, WHEELBASE, G, FRICTION (DRY,WET,SNOW,ICE). tire.js: calculateTireForce(slip, road). vehicle.js: Vehicle with v, a, update(dt). Tests: ESM imports, tire peak ~slip 0.2."
+    },
+    {
+      "id": "M2",
+      "title": "ABS algorithm",
+      "mode": "pure-logic",
+      "files": [
+        "src/abs/threshold.js",
+        "src/abs/modulator.js",
+        "src/abs/controller.js",
+        "tests/abs.test.js"
+      ],
+      "spec": "calculateSlipRatio, THRESHOLD_MIN/MAX, Modulator FAST_CYCLE ~20Hz, ABSController + Wheel. Tests: slip, threshold, cycling, activation."
+    },
+    {
+      "id": "M3",
+      "title": "Telemetry and chart data",
+      "mode": "pure-logic",
+      "files": [
+        "src/viz/history.js",
+        "src/viz/plot-series.js",
+        "src/viz/panel.js",
+        "tests/viz.test.js"
+      ],
+      "spec": "SimulationHistory record/getSeries (max 500), toLineSeries -> [{x,y}], buildDashboard -> chart objects. NO DOM."
+    },
+    {
+      "id": "M4",
+      "title": "Integrated simulation",
+      "mode": "pure-logic",
+      "files": [
+        "src/app/state.js",
+        "src/app/simulation.js",
+        "src/app/runner.js",
+        "tests/app.test.js"
+      ],
+      "spec": "AppState, Simulation.tick(dt), runTicks(sim,n,dt). Tests in test() blocks: brake reduces speed, ABS can activate, history records."
+    }
+  ]
+}

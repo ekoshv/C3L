@@ -24,6 +24,11 @@ re-reading files or repeating a dead fix.
 - **Orchestrator (`scripts/orchestrator/`):** the deterministic autonomous engine.
   Runs health checks itself, calls the model for ONE small scoped task per step
   with a tight turn cap, detects stalls, and decides completion.
+- **Great loop (`scripts/orchestrator/great-loop.mjs`):** when the inner loop
+  BLOCKEDs, a **recovery pass** runs with a broader prompt and `recovery_turns`
+  budget. Up to `great_loop_retries` (default 5) **consecutive hangs at the same
+  stage** — the counter **resets to 0** when the inner loop makes progress (health
+  green, milestone work). Each new milestone gets its own 5 attempts.
 - **Launchers (`run-watchdog.ps1`, `run-watchdog.sh`):** run
   `node scripts/orchestrator.mjs` (default), `--test` (one health check), or
   `--interactive`.
@@ -36,7 +41,9 @@ re-reading files or repeating a dead fix.
 - Each model call is short, single-purpose, and bounded by `impl_turns`/`fix_turns`.
 - Fresh context per call prevents the re-read spiral.
 - Loop-breakers (`same_error_limit`, `stall_limit`, `impl_attempt_limit`,
-  `max_iterations`) force a stop and write `failed_attempts.log`.
+  `max_iterations`) force an inner STOP and write `failed_attempts.log`.
+- The **great loop** then runs a recovery agent (reads source + tests, fixes root
+  cause, logs to `recovery_attempts.log`) and restarts the inner loop.
 
 ## Health-check command
 
@@ -101,8 +108,24 @@ When the codebase grows beyond a single app, follow these rules:
 ## State files
 
 - `watchdog.md` — behavioral anti-loop rules (do not delete).
-- `failed_attempts.log` — short-term memory of what did NOT work. Append on
-  failure; delete only after a verified green health check.
+- `failed_attempts.log` — last BLOCKED snapshot (orchestrator). Deleted on SUCCESS.
+- `failure_journal.log` — append-only failure analysis: orchestrator facts +
+  model-written `root_cause` and `do_not_repeat`. Read before every fix/recovery.
+- `learned_skills.log` — append-only reusable patterns from failures/progress.
+  Read before implement/fix/recovery. Deleted on SUCCESS.
+- `recovery_attempts.log` — great-loop hang triggers (orchestrator metadata).
+
+## Common local-model mistakes (kit handles these)
+
+The orchestrator prompts and `scripts/orchestrator/hints.mjs` target recurring
+failures from small models:
+
+- Inventing `assert.approximateEqual` — use `tests/test-utils.js` instead.
+- Assertions in `describe()` body — must live inside `it()` / `test()`.
+- Duplicate exports / re-declared classes — one symbol, one file.
+- Wrong ESM import paths — include `.js` extension.
+
+These fixes apply to **every project** that uses this kit, not one-off patches.
 
 ## Safety
 

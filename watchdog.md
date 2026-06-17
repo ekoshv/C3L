@@ -14,8 +14,11 @@ These rules are NOT left to model judgment. The deterministic orchestrator
 - No-progress guard → `stall_limit`: model edits no files yet error persists → STOP.
 - Implement guard → `impl_attempt_limit`: a milestone gains no new files → STOP.
 - Hard ceiling → `max_iterations`: total cycles capped → STOP.
-- Rules 2 & 4 → the orchestrator writes `failed_attempts.log` on any stop and
-  deletes it after a verified green `health:full`.
+- Rules 2 & 4 → on stop the orchestrator writes `failed_attempts.log` (last BLOCKED
+  snapshot) and deletes learning files after verified green `health:full`.
+- After every failed fix/recovery attempt the orchestrator writes to
+  `failure_journal.log` and runs a short **analyze** call so the model records
+  `root_cause` and `do_not_repeat`. Reusable patterns go in `learned_skills.log`.
 
 When a single scoped fix call runs, the model still receives these rules in its
 prompt and must honor Rule 3 (pivot, do not repeat logged failures).

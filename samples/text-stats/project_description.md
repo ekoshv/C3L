@@ -1,5 +1,5 @@
 ---
-name: My Autonomous Project
+name: TextStats
 version: 0.1.0
 health_quick: npm run health
 health_full: npm run health:full
@@ -20,7 +20,17 @@ recovery_turns: 20
 analyze_turns: 8
 ---
 
-# My Autonomous Project
+# TextStats
 
-Describe your project here. Copy a spec from `samples/` or edit this template.
-Define milestones in `scripts/milestones.json` (machine-checkable source of truth).
+## Vision
+
+Pure-logic text analysis library: tokenize words, count frequencies, summarize
+lines and paragraphs. No file I/O in tests — pass strings directly.
+
+## Milestones
+
+### M1 — Tokenizer
+### M2 — Word frequencies
+### M3 — Document summary
+
+See `milestones.json` for required files.

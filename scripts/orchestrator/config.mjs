@@ -3,7 +3,8 @@ import { join } from 'node:path';
 
 const NUMERIC = [
   'impl_turns', 'fix_turns', 'max_iterations',
-  'same_error_limit', 'stall_limit', 'impl_attempt_limit'
+  'same_error_limit', 'stall_limit', 'impl_attempt_limit',
+  'great_loop_retries', 'recovery_turns', 'analyze_turns'
 ];
 
 function parseFrontmatter(text) {

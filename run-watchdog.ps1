@@ -48,13 +48,13 @@ if ($Test) {
   exit $LASTEXITCODE
 }
 
-Write-Step 'Starting DETERMINISTIC orchestrator (autonomous) ...'
-Write-Step 'The loop runs in Node; the model is called only for small scoped tasks.'
+Write-Step 'Starting DETERMINISTIC orchestrator + great-loop recovery (autonomous) ...'
+Write-Step 'Inner loop in Node; on BLOCKED the model gets a recovery pass (up to 5x).'
 & node scripts/orchestrator.mjs
 $code = $LASTEXITCODE
 if ($code -eq 0) {
   Write-Step 'DONE: project complete and verified green.'
 } else {
-  Write-Step 'STOPPED: blocked for human review (see failed_attempts.log).'
+  Write-Step 'STOPPED: blocked after great-loop recovery exhausted (see failed_attempts.log, recovery_attempts.log).'
 }
 exit $code
