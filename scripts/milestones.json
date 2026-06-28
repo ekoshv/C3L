@@ -2,10 +2,30 @@
   "milestones": [
     {
       "id": "M1",
-      "title": "Example pure-logic module",
-      "mode": "pure-logic",
-      "files": ["src/example.js", "tests/example.test.js"],
-      "spec": "Replace with your first milestone. ESM only; test() blocks; test-utils.js for floats."
+      "title": "Money utilities",
+      "files": [
+        "src/money.js",
+        "tests/money.test.js"
+      ],
+      "spec": "src/money.js exports toCents(dollars) -> integer cents, formatCents(cents) -> string like \"$12.34\", and addCents(...amounts) -> integer sum. All functions reject non-numbers and non-integer cents by throwing. Pure logic, Node ESM."
+    },
+    {
+      "id": "M2",
+      "title": "Account ledger",
+      "files": [
+        "src/ledger.js",
+        "tests/ledger.test.js"
+      ],
+      "spec": "src/ledger.js exports createLedger() returning { post(entry), balanceOf(account) }. entry is { account, amount } with amount an integer in cents (may be negative). balanceOf(account) returns the sum of posted amounts for that account, or 0 if none. post throws on a missing account or non-integer amount. Pure logic, Node ESM."
+    },
+    {
+      "id": "M3",
+      "title": "Category report",
+      "files": [
+        "src/report.js",
+        "tests/report.test.js"
+      ],
+      "spec": "src/report.js exports totalsByCategory(entries) where each entry is { category, amount } in integer cents. Returns an object mapping category -> summed cents. Throws if any entry has an empty or missing category. Pure logic, Node ESM."
     }
   ]
 }

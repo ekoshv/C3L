@@ -20,6 +20,36 @@ export function readLearnedSkills(root, lines = 25) {
   return existsSync(p) ? tail(readFileSync(p, 'utf8'), lines) : '(empty)';
 }
 
+export function completedJournalBlocks(text, limit = 3) {
+  return (text || '')
+    .split(/\n---\n/)
+    .filter((block) => /root_cause:/i.test(block) && /do_not_repeat:/i.test(block))
+    .slice(-limit);
+}
+
+export function journalContextFromText(failText, skillsText = '') {
+  const completed = completedJournalBlocks(failText, 3).join('\n---\n') || '(empty)';
+  return (
+    `--- completed failure analyses ---\n${completed}\n\n` +
+    `--- learned_skills.log ---\n${skillsText || '(empty)'}`
+  );
+}
+
+export function latestAnalysisComplete(text) {
+  const blocks = (text || '').split(/\n---\n/).filter((b) => b.includes('[orchestrator]'));
+  const latest = blocks.at(-1) || '';
+  return /root_cause:/i.test(latest) && /do_not_repeat:/i.test(latest);
+}
+
+export function failureJournalText(root) {
+  const p = join(root, FAIL);
+  return existsSync(p) ? readFileSync(p, 'utf8') : '';
+}
+
+export function markAnalysisMissing(root) {
+  appendFileSync(join(root, FAIL), 'analysis_missing: true\n');
+}
+
 function firstErrorLine(output) {
   const m = (output || '').match(/^(✖ .+|Error:.+|AssertionError.+|TypeError.+)/m);
   return m ? m[1].trim() : 'unknown error';
@@ -59,10 +89,5 @@ export function clearJournals(root) {
 }
 
 export function journalContext(root) {
-  return (
-    `--- failure_journal.log (do NOT repeat listed strategies) ---\n` +
-    `${readFailureJournal(root, 35)}\n\n` +
-    `--- learned_skills.log (reuse these patterns) ---\n` +
-    `${readLearnedSkills(root, 20)}`
-  );
+  return journalContextFromText(failureJournalText(root), readLearnedSkills(root, 20));
 }

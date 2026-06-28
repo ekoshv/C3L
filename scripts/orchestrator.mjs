@@ -4,6 +4,7 @@ import { dirname } from 'node:path';
 import { mkdirSync } from 'node:fs';
 import { loadConfig } from './orchestrator/config.mjs';
 import { runGreatLoop } from './orchestrator/great-loop.mjs';
+import { ensureGraphSidecar } from './orchestrator/graph-context.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const cfg = loadConfig(root);
@@ -17,6 +18,15 @@ console.log(`[orch] project: ${cfg.name} v${cfg.version}`);
 console.log(`[orch] health:  ${cfg.health_command}`);
 console.log(`[orch] milestones: ${cfg.milestones.map((m) => m.id).join(', ')}`);
 console.log(`[orch] log: ${logFile}`);
+
+if (cfg.graph_sidecar || cfg.graph_required) {
+  console.log('[orch] graph sidecar: starting Docker CodeGraph + Graphify ...');
+  const g = ensureGraphSidecar(cfg);
+  if (g.ok && !g.skipped) console.log('[orch] graph sidecar: ready');
+  else if (!g.ok) console.warn('[orch] graph sidecar: failed — continuing without graphs');
+} else if (cfg.graph_auto) {
+  console.log('[orch] graph auto: will use an existing sidecar if available');
+}
 
 const result = runGreatLoop(cfg, logFile);
 

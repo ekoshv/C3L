@@ -7,6 +7,12 @@ import { recoveryPrompt } from './recovery-prompt.mjs';
 import { activeMilestone } from './active.mjs';
 import { nextIncomplete } from './milestones.mjs';
 import { afterFailedAttempt, recordProgressSkill, clearJournals } from './learn.mjs';
+import { buildEvidence } from './evidence.mjs';
+import { turnsForRecovery } from './attempt.mjs';
+import {
+  printAgentResult, printFailureSummary, printFileDiff
+} from './terminal-summary.mjs';
+import { diffSignatures, listSourceFiles, signatureMap } from './state.mjs';
 
 const log = (m) => console.log(`[great] ${m}`);
 
@@ -31,16 +37,26 @@ function clearRecoveryLog(root) {
 function recoveryPass(cfg, logFile, streak, reason, milestone) {
   appendRecoveryTrigger(cfg.root, streak, cfg.great_loop_retries, reason, milestone);
   const health = runHealth(cfg, cfg.health_quick);
+  const evidence = buildEvidence(cfg, health.output, milestone);
   const prompt = recoveryPrompt(cfg, {
-    attempt: streak, reason, healthOutput: health.output, milestone
+    attempt: streak, reason, healthOutput: health.output, milestone, evidence
   });
   log(`recovery [${milestone?.id || '?'}] hang ${streak}/${cfg.great_loop_retries}`);
-  invokeAgent(prompt, cfg.recovery_turns, logFile);
+  printFailureSummary('[great]', evidence);
+  const beforeFiles = [...new Set([...(evidence.scopeFiles || []), ...listSourceFiles(cfg.root)])];
+  const beforeSig = signatureMap(cfg.root, beforeFiles);
+  const agent = invokeAgent(
+    prompt, turnsForRecovery(cfg, milestone, evidence), logFile, `recovery ${milestone?.id || '?'}`
+  );
+  const afterFiles = [...new Set([...beforeFiles, ...listSourceFiles(cfg.root)])];
+  const afterSig = signatureMap(cfg.root, afterFiles);
+  printAgentResult('[great]', agent);
+  printFileDiff('[great]', diffSignatures(beforeSig, afterSig));
   const after = runHealth(cfg, cfg.health_quick);
   log(`post-recovery health: ${after.ok ? 'GREEN' : 'still failing'}`);
   if (!after.ok) {
     afterFailedAttempt(cfg, logFile, {
-      phase: 'recovery', milestone, output: after.output
+      phase: 'recovery', milestone, evidence, output: after.output
     });
   } else {
     recordProgressSkill(cfg, milestone, health.output, after.output);

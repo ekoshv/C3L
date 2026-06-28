@@ -5,9 +5,12 @@ import { invokeAgent } from './agent.mjs';
 import { implementPrompt } from './prompts.mjs';
 import { nextIncomplete, milestoneFilesPresent } from './milestones.mjs';
 import { activeMilestone } from './active.mjs';
-import { abortReason } from './state.mjs';
+import { abortReason, diffSignatures, listSourceFiles, signatureMap } from './state.mjs';
 import { fixCycle } from './fix-cycle.mjs';
 import { clearJournals } from './learn.mjs';
+import { implementMilestoneRLM } from './rlm.mjs';
+import { stripDebugLogs } from './strip-debug.mjs';
+import { printAgentResult, printFileDiff } from './terminal-summary.mjs';
 
 const log = (m) => console.log(`[orch] ${m}`);
 
@@ -25,7 +28,7 @@ function clearFailure(root) {
 
 export function run(cfg, logFile) {
   const root = cfg.root;
-  const counters = { sameErrorStreak: 0, noEditStreak: 0, implNoProgress: 0 };
+  const counters = { sameErrorStreak: 0, noEditStreak: 0, implNoProgress: 0, maxTurnStreak: 0 };
   let lastFp = null;
   let passedBlock = false;
 
@@ -61,11 +64,23 @@ export function run(cfg, logFile) {
         log(`iter ${i}: ${m.id} files present — skip implement`);
         continue;
       }
-      const before = milestoneFilesPresent(root, m);
-      invokeAgent(implementPrompt(cfg, m), cfg.impl_turns, logFile);
-      const after = milestoneFilesPresent(root, m);
-      if (after > before) passedBlock = true;
-      counters.implNoProgress = after > before ? 0 : counters.implNoProgress + 1;
+      const beforeCount = milestoneFilesPresent(root, m);
+      const tracked = [...new Set([...listSourceFiles(root), ...m.files])];
+      const beforeSig = signatureMap(root, tracked);
+      if (cfg.rlm_enabled) {
+        implementMilestoneRLM(cfg, m, logFile);
+        stripDebugLogs(root, m.files);
+      } else {
+        const agent = invokeAgent(implementPrompt(cfg, m), cfg.impl_turns, logFile, `implement ${m.id}`);
+        printAgentResult('[orch]', agent);
+      }
+      const afterTracked = [...new Set([...tracked, ...listSourceFiles(root), ...m.files])];
+      const afterSig = signatureMap(root, afterTracked);
+      printFileDiff('[orch]', diffSignatures(beforeSig, afterSig));
+      const afterCount = milestoneFilesPresent(root, m);
+      log(`iter ${i}: ${m.id} files present ${beforeCount}/${m.files.length} -> ${afterCount}/${m.files.length}`);
+      if (afterCount > beforeCount) passedBlock = true;
+      counters.implNoProgress = afterCount > beforeCount ? 0 : counters.implNoProgress + 1;
       if (shouldAbort(counters, cfg)) return blocked(root, counters, cfg, '', passedBlock, m);
       continue;
     }
@@ -85,7 +100,8 @@ function shouldAbort(counters, cfg) {
   return (
     counters.sameErrorStreak >= cfg.same_error_limit ||
     counters.noEditStreak >= cfg.stall_limit ||
-    counters.implNoProgress >= cfg.impl_attempt_limit
+    counters.implNoProgress >= cfg.impl_attempt_limit ||
+    counters.maxTurnStreak >= (cfg.max_turn_limit || 2)
   );
 }
 

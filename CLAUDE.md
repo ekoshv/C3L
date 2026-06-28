@@ -24,6 +24,13 @@ re-reading files or repeating a dead fix.
 - **Orchestrator (`scripts/orchestrator/`):** the deterministic autonomous engine.
   Runs health checks itself, calls the model for ONE small scoped task per step
   with a tight turn cap, detects stalls, and decides completion.
+- **Failure microscope (`scripts/diagnose-failure.mjs`):** deterministic
+  diagnostics for the first failing test. Fix/recovery prompts include assertion
+  shape, nearby test context, direct imports, common failure class, suspicious
+  boundary guards, and optional project probe output.
+- **Terminal summaries (`scripts/orchestrator/terminal-summary.mjs`):** concise
+  command-line progress output for agent calls, file changes, first failures,
+  diagnostic facts, targeted verification, health, and recovery attempts.
 - **Great loop (`scripts/orchestrator/great-loop.mjs`):** when the inner loop
   BLOCKEDs, a **recovery pass** runs with a broader prompt and `recovery_turns`
   budget. Up to `great_loop_retries` (default 5) **consecutive hangs at the same
@@ -114,6 +121,12 @@ When the codebase grows beyond a single app, follow these rules:
 - `learned_skills.log` — append-only reusable patterns from failures/progress.
   Read before implement/fix/recovery. Deleted on SUCCESS.
 - `recovery_attempts.log` — great-loop hang triggers (orchestrator metadata).
+
+## Diagnostic probes
+
+Run `npm run diagnose` when a failure is not obvious from the stack trace. For
+domain-specific state bugs, projects can add `scripts/diagnostics/probe.mjs`;
+the hook reads JSON from stdin and prints one concise fact per line.
 
 ## Common local-model mistakes (kit handles these)
 

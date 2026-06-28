@@ -16,22 +16,58 @@ function readLog(root, name) {
 export function recoveryPrompt(cfg, ctx) {
   const failed = readLog(cfg.root, 'failed_attempts.log');
   const scope = scopeLines(ctx.milestone);
+  const evidence = ctx.evidence || {};
+  const allowed = (evidence.scopeFiles || ctx.milestone?.files || [])
+    .map((f) => `- ${f}`).join('\n') || '(none)';
+  const graphText = typeof evidence.graph === 'string'
+    ? evidence.graph
+    : (evidence.graph?.text || '');
+  const diagnostics = typeof evidence.diagnostics === 'string'
+    ? evidence.diagnostics
+    : (evidence.diagnostics?.text || '');
 
   return `RECOVERY MODE — inner orchestrator BLOCKED at a hang point.
 Hang recovery ${ctx.attempt}/${cfg.great_loop_retries}. Reason: ${ctx.reason}
 
 ${scope}
 
-Procedure:
-1. Read watchdog.md, failure_journal.log, learned_skills.log — do NOT repeat do_not_repeat entries.
-2. Read failed_attempts.log; open failing test + every source file it imports.
-3. Fix implementation OR rewrite tests (ESM imports, no window/jsdom).
-4. Apply patterns from learned_skills.log where relevant.
-5. Run ${cfg.health_quick}. Stop when it passes.
-6. If you learn something reusable, append to learned_skills.log.
+First failure:
+- file: ${evidence.failure?.file || 'unknown'}
+- test: ${evidence.failure?.name || 'unknown'}
+
+Allowed scope:
+${allowed}
+
+${diagnostics}
+
+${graphText}
+
+Required response sections:
+READ:
+- files inspected
+- invariant understood
+
+PATCH:
+- files changed
+- why each change addresses the first failure
+
+VERIFY:
+- targeted command run
+- full command run, if targeted passed
+- observed result
+
+LEARN:
+- root cause and do_not_repeat if still failing
+
+Rules:
+- Read watchdog.md, failure_journal.log, learned_skills.log, and failed_attempts.log.
+- Do not claim health passed unless command output in this run says it passed.
+- If you cannot finish, make the smallest useful edit and stop.
+- Do not output replacement code blocks unless you also edit files.
+- Do not rewrite tests unless they violate the milestone spec or mandatory test rules.
 
 Hard rules: ≤100 lines/file; Node ESM; test-utils.js for floats; pure logic only.
-${errorHints(ctx.healthOutput)}
+${errorHints(ctx.healthOutput, evidence)}
 
 ${journalContext(cfg.root)}
 

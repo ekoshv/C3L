@@ -38,15 +38,41 @@ export function snapshotFiles(root, files) {
     .join('|');
 }
 
+export function signatureMap(root, files) {
+  const out = new Map();
+  for (const f of files) {
+    const p = join(root, f);
+    out.set(f, existsSync(p) ? `${statSync(p).mtimeMs}:${statSync(p).size}` : 'absent');
+  }
+  return out;
+}
+
+export function diffSignatures(before, after) {
+  const files = new Set([...before.keys(), ...after.keys()]);
+  const diff = { created: [], modified: [], deleted: [] };
+  for (const f of files) {
+    const a = before.get(f) || 'absent';
+    const b = after.get(f) || 'absent';
+    if (a === b) continue;
+    if (a === 'absent') diff.created.push(f);
+    else if (b === 'absent') diff.deleted.push(f);
+    else diff.modified.push(f);
+  }
+  return diff;
+}
+
 export function shouldAbort(counters, limits) {
   return (
     counters.sameErrorStreak >= limits.same_error_limit ||
     counters.noEditStreak >= limits.stall_limit ||
-    counters.implNoProgress >= limits.impl_attempt_limit
+    counters.implNoProgress >= limits.impl_attempt_limit ||
+    counters.maxTurnStreak >= (limits.max_turn_limit || 2)
   );
 }
 
 export function abortReason(counters, limits) {
+  if (counters.maxTurnStreak >= (limits.max_turn_limit || 2))
+    return `agent reached max turns ${counters.maxTurnStreak}x`;
   if (counters.sameErrorStreak >= limits.same_error_limit)
     return `same error fingerprint repeated ${counters.sameErrorStreak}x`;
   if (counters.noEditStreak >= limits.stall_limit)

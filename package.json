@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "node scripts/run-tests.mjs",
+    "diagnose": "node scripts/diagnose-failure.mjs",
     "health": "node scripts/health-check.mjs quick",
     "health:full": "node scripts/health-check.mjs full"
   }

@@ -2,51 +2,63 @@
   "milestones": [
     {
       "id": "M1",
-      "title": "Core physics engine",
+      "title": "Tire and road physics",
       "mode": "pure-logic",
       "files": [
-        "src/physics/constants.js",
-        "src/physics/tire.js",
-        "src/physics/vehicle.js",
+        "src/physics/surfaces.js",
+        "src/physics/slip.js",
+        "src/physics/tire-curve.js",
         "tests/physics.test.js"
       ],
-      "spec": "constants.js: VEHICLE_MASS, WHEELBASE, G, FRICTION (DRY,WET,SNOW,ICE). tire.js: calculateTireForce(slip, road). vehicle.js: Vehicle with v, a, update(dt). Tests: ESM imports, tire peak ~slip 0.2."
+      "spec": "Create deterministic tire and road physics. surfaces.js exports SURFACES with dry, wet, gravel, snow, ice, and splitMuLeft/right definitions containing muPeak, muSlide, optimalSlip, and description. slip.js exports calculateSlipRatio(vehicleSpeed, wheelSpeed, wheelRadius) and clampSlip(slip), clamping slip to 0..1 and treating near-zero speed safely. tire-curve.js exports frictionForSlip(slip, surface) and tireForce(normalLoad, slip, surface), with force peaking near surface.optimalSlip and falling toward muSlide at lock. Tests cover safe zero-speed behavior, increasing force before optimal slip, lower force at lock, and surface differences."
     },
     {
       "id": "M2",
-      "title": "ABS algorithm",
+      "title": "Vehicle and brake dynamics",
       "mode": "pure-logic",
       "files": [
-        "src/abs/threshold.js",
-        "src/abs/modulator.js",
-        "src/abs/controller.js",
-        "tests/abs.test.js"
+        "src/dynamics/wheel.js",
+        "src/dynamics/brake.js",
+        "src/dynamics/vehicle.js",
+        "tests/dynamics.test.js"
       ],
-      "spec": "calculateSlipRatio, THRESHOLD_MIN/MAX, Modulator FAST_CYCLE ~20Hz, ABSController + Wheel. Tests: slip, threshold, cycling, activation."
+      "spec": "Create pure vehicle dynamics. wheel.js exports createWheel(radius, inertia) and updateWheel(wheel, torque, dt) without negative angular speed. brake.js exports brakeTorque(pressure, maxTorque) and clampPressure(pressure). vehicle.js exports createVehicle(options) and stepVehicle(vehicle, command, dt), tracking speed, distance, time, wheel speed, brake pressure, slip, tire force, and stopped status. It must use M1 tire physics, support surface selection per wheel side when provided, and clamp speed to zero. Tests cover braking reduces speed, distance increases, pressure clamps, wheel speed never becomes negative, and stopped vehicles stay stopped."
     },
     {
       "id": "M3",
-      "title": "Telemetry and chart data",
+      "title": "ABS control algorithms",
       "mode": "pure-logic",
       "files": [
-        "src/viz/history.js",
-        "src/viz/plot-series.js",
-        "src/viz/panel.js",
-        "tests/viz.test.js"
+        "src/abs/modes.js",
+        "src/abs/threshold-controller.js",
+        "src/abs/cadence-controller.js",
+        "tests/abs.test.js"
       ],
-      "spec": "SimulationHistory record/getSeries (max 500), toLineSeries -> [{x,y}], buildDashboard -> chart objects. NO DOM."
+      "spec": "Create ABS controllers. modes.js exports ABS_MODES disabled, threshold, and cadence plus createController(mode, options). threshold-controller.js exports createThresholdController({ targetSlip, releaseSlip, restoreRate, releaseRate }) returning update(state, dt) with pressureScale and active. cadence-controller.js exports createCadenceController({ targetSlip, cycleHz, minScale, recoverySlip }) that pulses pressure at about cycleHz while slip is high and restores pressure when recovered. Disabled mode always returns pressureScale 1 and active false. Tests cover no ABS pass-through, threshold release/restore behavior, cadence cycling, and activation when slip exceeds target."
     },
     {
       "id": "M4",
-      "title": "Integrated simulation",
-      "mode": "pure-logic",
+      "title": "Scenario simulation",
+      "mode": "integration",
       "files": [
-        "src/app/state.js",
-        "src/app/simulation.js",
-        "src/app/runner.js",
-        "tests/app.test.js"
+        "src/sim/scenarios.js",
+        "src/sim/run-simulation.js",
+        "src/sim/compare.js",
+        "tests/simulation.test.js"
       ],
-      "spec": "AppState, Simulation.tick(dt), runTicks(sim,n,dt). Tests in test() blocks: brake reduces speed, ABS can activate, history records."
+      "spec": "Wire M1-M3 into deterministic scenarios. scenarios.js exports makeScenario(name, options) and PRESET_SCENARIOS for dry, wet, gravel, snow, ice, and split-mu braking. run-simulation.js exports runSimulation(scenario, { absMode, dt, maxTime }) returning samples, stopTime, stoppingDistance, lockedWheelCount, absActiveCount, and finalState. compare.js exports compareAbsModes(scenario, modes) returning sorted mode summaries. Tests cover simulation stops from a positive speed, ABS activates on low-mu surfaces, disabled braking can lock more often than ABS, stopping distance is positive, and compareAbsModes returns one summary per mode."
+    },
+    {
+      "id": "M5",
+      "title": "Educational telemetry and lessons",
+      "mode": "integration",
+      "files": [
+        "src/education/telemetry.js",
+        "src/education/chart-series.js",
+        "src/education/lesson-report.js",
+        "tests/education.test.js"
+      ],
+      "spec": "Create educational outputs from simulation results. telemetry.js exports summarizeTelemetry(result) with maxSlip, peakDecel, lockupEvents, absWindows, and distance. chart-series.js exports toChartSeries(samples) with vehicleSpeed, wheelSpeed, slip, pressure, tireForce, and absActive arrays of { x, y }. lesson-report.js exports buildLessonReport(comparison) with title, keyFindings, vocabulary, and recommendations explaining optimal slip, wheel lock, surface friction, and ABS modulation. Tests cover chart series lengths, lockup detection, ABS window detection, vocabulary entries, and a recommendation that references stopping distance."
     }
   ]
 }

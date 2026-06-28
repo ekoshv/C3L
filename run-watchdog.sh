@@ -17,11 +17,13 @@ log() { printf '\033[36m[watchdog]\033[0m %s\n' "$*"; }
 
 TEST=false
 INTERACTIVE=false
+GRAPH_SIDECAR=false
 for arg in "$@"; do
   case "$arg" in
     --test) TEST=true ;;
     --interactive) INTERACTIVE=true ;;
-    -h|--help) echo "Usage: $0 [--test] [--interactive]"; exit 0 ;;
+    --graph-sidecar) GRAPH_SIDECAR=true ;;
+    -h|--help) echo "Usage: $0 [--test] [--interactive] [--graph-sidecar]"; exit 0 ;;
   esac
 done
 
@@ -46,6 +48,10 @@ if [[ "$TEST" == true ]]; then
 fi
 
 log "Starting DETERMINISTIC orchestrator + great-loop recovery (autonomous) ..."
+if [[ "$GRAPH_SIDECAR" == true ]]; then
+  log "Graph sidecar: Docker CodeGraph + Graphify (docker-compose.graph.yml)"
+  export GRAPH_SIDECAR=1
+fi
 log "Inner loop in Node; on BLOCKED the model gets a recovery pass (up to 5x)."
 if node scripts/orchestrator.mjs; then
   log "DONE: project complete and verified green."

@@ -12,14 +12,14 @@
       "title": "Length",
       "mode": "pure-logic",
       "files": ["src/length.js", "tests/length.test.js"],
-      "spec": "mToFt(m), ftToM(ft), kmToMi(km), miToKm(mi). Throw on non-finite. approximateEqual for floats. 1 m ≈ 3.28084 ft."
+      "spec": "mToFt(m), ftToM(ft), kmToMi(km), miToKm(mi). Throw on non-finite. approximateEqual for floats. 1 m is approximately 3.28084 ft."
     },
     {
       "id": "M3",
       "title": "Batch convert",
       "mode": "pure-logic",
       "files": ["src/convert.js", "tests/convert.test.js"],
-      "spec": "convertAll(values, fn) maps fn over array. convertTable(rows, fromFn, toFn) -> { input, output }[]. Re-export temperature + length helpers from one entry if desired."
+      "spec": "convertAll(values, fn) maps fn over array. convertTable(rows, fromFn, toFn) -> { input, output }[]. Re-export temperature and length helpers from one entry if desired."
     }
   ]
 }

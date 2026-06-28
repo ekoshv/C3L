@@ -29,12 +29,14 @@ const RULES = [
   },
   {
     test: /isABSActive|slipRatio|lockup flag/i,
+    when: hasAbsContext,
     hint:
       'Tests may set slipRatio directly but update() recalculates from omega values — ' +
       'set omega_wheel/omega_vehicle in tests or fix update()/lockup clear logic.',
   },
   {
     test: /FAST_CYCLE|valveState|Modulator toggles/i,
+    when: hasAbsContext,
     hint:
       'Keep FAST_CYCLE as the active mode while toggling OPEN/CLOSED sub-states; ' +
       'do not replace FAST_CYCLE with OPEN/CLOSED on the mode field.',
@@ -47,15 +49,32 @@ const RULES = [
   },
   {
     test: /triggerUncaughtException|AssertionError[\s\S]*app\.test|at file:\/\/.*\.test\.js:\d+:\d+\s*$/m,
+    when: importTimeAssertion,
     hint:
       'Assertions at module top level crash the test runner. Wrap EVERY check in ' +
       'test("name", () => { ... }) or it("name", () => { ... }).',
   },
 ];
 
-export function errorHints(output) {
+function files(ctx) {
+  return [...(ctx.failingTests || []), ...(ctx.scopeFiles || [])];
+}
+
+function hasAbsContext(ctx) {
+  if (!ctx || !files(ctx).length) return false;
+  return files(ctx).some((f) => /(^|\/)(tests\/abs\.test\.js|src\/abs\/)/.test(f));
+}
+
+function importTimeAssertion(ctx, output) {
   const text = output || '';
-  const matched = RULES.filter((r) => r.test.test(text)).map((r) => `- ${r.hint}`);
+  return /triggerUncaughtException|describe\(\)[\s\S]*AssertionError/i.test(text);
+}
+
+export function errorHints(output, ctx = null) {
+  const text = output || '';
+  const matched = RULES
+    .filter((r) => r.test.test(text) && (!r.when || r.when(ctx, text)))
+    .map((r) => `- ${r.hint}`);
   if (!matched.length) return '';
   return '\nAuto-detected patterns (apply these first):\n' + matched.join('\n');
 }

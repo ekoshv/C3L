@@ -12,7 +12,8 @@
 #>
 param(
   [switch]$Test,
-  [switch]$Interactive
+  [switch]$Interactive,
+  [switch]$GraphSidecar
 )
 
 $ErrorActionPreference = 'Stop'
@@ -49,6 +50,10 @@ if ($Test) {
 }
 
 Write-Step 'Starting DETERMINISTIC orchestrator + great-loop recovery (autonomous) ...'
+if ($GraphSidecar) {
+  Write-Step 'Graph sidecar: Docker CodeGraph + Graphify (see docker-compose.graph.yml)'
+  $env:GRAPH_SIDECAR = '1'
+}
 Write-Step 'Inner loop in Node; on BLOCKED the model gets a recovery pass (up to 5x).'
 & node scripts/orchestrator.mjs
 $code = $LASTEXITCODE

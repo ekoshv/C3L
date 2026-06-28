@@ -1,0 +1,21 @@
+# Graph sidecar for claude_local — CodeGraph + Graphify over a shared project mount.
+# Host orchestrator stays native; graphs run in Docker (CLI + optional MCP via docker exec).
+#
+#   docker compose -f docker-compose.graph.yml up -d --build
+#   node scripts/graph-sidecar.mjs init
+#   .\run-watchdog.ps1 -GraphSidecar
+
+services:
+  codegraph:
+    build: ./docker/codegraph
+    volumes:
+      - ${GRAPH_PROJECT:-.}:/workspace
+    working_dir: /workspace
+    restart: unless-stopped
+
+  graphify:
+    build: ./docker/graphify
+    volumes:
+      - ${GRAPH_PROJECT:-.}:/workspace
+    working_dir: /workspace
+    restart: unless-stopped
